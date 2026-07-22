@@ -8,7 +8,8 @@ from backend.app.api.v1.router import api_router
 from backend.app.config.settings import settings
 from backend.app.core.exceptions import register_exception_handlers
 from backend.app.core.logging_config import setup_logging
-from backend.app.database.connection import init_db
+from backend.app.core.startup_validation import StartupValidationError, validate_startup_configuration
+from backend.app.database.connection import engine, init_db, readonly_engine
 from backend.app.observability.request_context import set_request_id
 
 # Initialize logging before creating the app instance
@@ -18,24 +19,46 @@ logger = logging.getLogger("omnibrain.main")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Context manager for handling FastAPI application startup and shutdown lifecycles."""
+    """Context manager for handling FastAPI application startup and shutdown
+    lifecycles. Startup fails fast on critical misconfiguration or database
+    initialization failure -- so a container orchestrator sees a crashed
+    process (and can restart/alert) rather than a process that started but
+    can never actually serve requests.
+    """
     logger.info("Application starting up...")
 
-    # Initialize Database tables
+    try:
+        validate_startup_configuration()
+    except StartupValidationError as exc:
+        logger.critical(f"Startup validation failed: {exc}")
+        raise
+
     try:
         init_db()
-    except Exception as e:
-        logger.critical(f"Database initialization failed during startup: {str(e)}")
+    except Exception as exc:
+        logger.critical(f"Database initialization failed during startup: {exc}")
+        raise
 
-    logger.info("Application startup sequence completed.")
+    logger.info(
+        f"Application startup sequence completed "
+        f"(version={settings.APP_VERSION}, environment={settings.ENVIRONMENT})."
+    )
     yield
+
     logger.info("Application shutting down...")
+    try:
+        engine.dispose()
+        readonly_engine.dispose()
+        logger.info("Database engine connections disposed.")
+    except Exception:
+        logger.exception("Error disposing database engines during shutdown.")
+    logger.info("Shutdown complete.")
 
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
     description="Enterprise-grade Agentic Multi-Modal RAG Orchestrator API backend.",
-    version="1.0.0",
+    version=settings.APP_VERSION,
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url=f"{settings.API_V1_PREFIX}/openapi.json",
@@ -93,6 +116,8 @@ def root():
         "message": f"Welcome to {settings.PROJECT_NAME} Backend API.",
         "documentation": "/docs",
         "status": "online",
+        "version": settings.APP_VERSION,
+        "environment": settings.ENVIRONMENT,
     }
 
 
@@ -100,9 +125,18 @@ if __name__ == "__main__":
     import uvicorn
 
     logger.info(f"Running FastAPI application via Uvicorn on {settings.BACKEND_HOST}:{settings.BACKEND_PORT}")
-    uvicorn.run(
-        "main:app",
-        host=settings.BACKEND_HOST,
-        port=settings.BACKEND_PORT,
-        reload=settings.DEBUG,
-    )
+
+    uvicorn_kwargs = {
+        "host": settings.BACKEND_HOST,
+        "port": settings.BACKEND_PORT,
+        "reload": settings.DEBUG,
+    }
+    # Multiple workers are incompatible with --reload, and with this app's
+    # in-process singletons (conversation state, metrics, evaluation
+    # history) -- each worker would have independent state. Only apply
+    # workers when not in debug/reload mode; validate_startup_configuration()
+    # already warns if this combination looks unintentional.
+    if not settings.DEBUG and settings.UVICORN_WORKERS > 1:
+        uvicorn_kwargs["workers"] = settings.UVICORN_WORKERS
+
+    uvicorn.run("backend.app.main:app", **uvicorn_kwargs)

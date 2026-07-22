@@ -70,12 +70,18 @@ class DocumentIngestionService:
         """Validates, stores, parses, chunks, embeds, and indexes a single
         PDF file, persisting a `DocumentModel` row that tracks its status
         through the pipeline (PENDING -> PROCESSING -> COMPLETED/FAILED).
+
+        A file whose content already matches a COMPLETED or in-progress
+        PROCESSING document is rejected as a duplicate. A file that matches
+        a previously FAILED document is instead retried using that same row
+        (file_hash is unique) -- a transient failure must not permanently
+        block every future re-upload of that file.
         """
         self.validate_upload(filename, content_type, len(file_bytes))
 
         file_hash = hashlib.sha256(file_bytes).hexdigest()
         existing = self.db.query(DocumentModel).filter(DocumentModel.file_hash == file_hash).first()
-        if existing:
+        if existing and existing.status != "FAILED":
             raise ValidationException(
                 f"File '{filename}' has already been uploaded (document_id={existing.id}, status={existing.status}).",
                 details={"document_id": existing.id, "status": existing.status},
@@ -86,27 +92,41 @@ class DocumentIngestionService:
         with open(stored_path, "wb") as f:
             f.write(file_bytes)
 
-        document = DocumentModel(
-            filename=filename,
-            file_hash=file_hash,
-            file_size=len(file_bytes),
-            content_type=content_type or "application/pdf",
-            file_path=stored_path,
-            status="PROCESSING",
-        )
-        self.db.add(document)
+        if existing:
+            logger.info(f"Retrying previously failed upload for '{filename}' (document_id={existing.id}).")
+            document = existing
+            document.filename = filename
+            document.content_type = content_type or "application/pdf"
+            document.file_path = stored_path
+            document.file_size = len(file_bytes)
+            document.error_message = None
+            document.status = "PROCESSING"
+        else:
+            document = DocumentModel(
+                filename=filename,
+                file_hash=file_hash,
+                file_size=len(file_bytes),
+                content_type=content_type or "application/pdf",
+                file_path=stored_path,
+                status="PROCESSING",
+            )
+            self.db.add(document)
+
         self.db.commit()
         self.db.refresh(document)
 
         try:
             self._process_document(document, stored_path, filename)
-        except AppException:
-            self._mark_failed(document, "Processing failed due to a known application error.")
-            raise
+        except AppException as exc:
+            logger.error(
+                f"Document '{filename}' (id={document.id}) failed during processing: "
+                f"{exc.message} | Details: {exc.details}"
+            )
+            detail_suffix = f" Details: {exc.details}" if exc.details else ""
+            self._mark_failed(document, f"{exc.message}{detail_suffix}")
         except Exception as exc:
-            logger.exception(f"Unexpected failure while processing document '{filename}'.")
-            self._mark_failed(document, str(exc))
-            raise
+            logger.exception(f"Unexpected failure while processing document '{filename}' (id={document.id}).")
+            self._mark_failed(document, f"Unexpected error: {exc}")
 
         return document
 

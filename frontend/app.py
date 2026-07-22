@@ -129,6 +129,7 @@ st.markdown(
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 API_PREFIX = os.getenv("API_V1_PREFIX", "/api/v1")
 FULL_API_URL = f"{BACKEND_URL}{API_PREFIX}"
+APP_VERSION = os.getenv("APP_VERSION", "1.0.0")
 
 # Initialize Session State
 if "initialized" not in st.session_state:
@@ -231,6 +232,7 @@ with st.sidebar:
     st.markdown("---")
     st.caption(f"Backend API URL:\n`{FULL_API_URL}`")
     st.caption(f"Environment: `{health_data.get('environment', 'Unknown')}`")
+    st.caption(f"OmniBrain v{APP_VERSION}")
 
 
 # ==============================================================================
@@ -252,12 +254,12 @@ if st.session_state.active_tab == "Home":
                 OmniBrain is a production-grade enterprise platform designed to orchestrate document intelligence, 
                 semantic search, structured SQL reasoning, and multi-agent workflows. 
             </p>
-            <p><strong>Core Features Planned:</strong></p>
+            <p><strong>Core Features:</strong></p>
             <ul>
                 <li><strong>Multi-Modal Extraction</strong>: Deep analysis of PDFs containing text, tables, and images.</li>
                 <li><strong>Dynamic Multi-Agent System</strong>: Graph-based agent execution powered by LangGraph.</li>
                 <li><strong>SQL + Vector Fusion</strong>: Joint semantic and structured database queries with citation tracing.</li>
-                <li><strong>Enterprise Safety & Observability</strong>: NeMo Guardrails and Langfuse monitoring.</li>
+                <li><strong>Enterprise Safety & Observability</strong>: Built-in input/output guardrails, structured logging, and live metrics/evaluation dashboards.</li>
             </ul>
         </div>
         """,

@@ -160,3 +160,6 @@ logs/
 
 # Runtime-generated storage (uploads, extracted assets, local FAISS index)
 storage/
+
+# Streamlit local secrets (the checked-in .streamlit/config.toml is fine to commit)
+.streamlit/secrets.toml

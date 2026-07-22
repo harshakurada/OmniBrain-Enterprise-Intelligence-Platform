@@ -1,5 +1,7 @@
 from fastapi import status
-from tests._test_helpers import isolated_client, make_pdf_bytes  # noqa: F401
+from backend.app.api.deps import get_embedding_service
+from backend.app.main import app
+from tests._test_helpers import FakeEmbeddingService, isolated_client, make_pdf_bytes  # noqa: F401
 
 
 def test_upload_single_pdf_succeeds(isolated_client):
@@ -99,3 +101,75 @@ def test_list_and_get_document(isolated_client):
 def test_get_nonexistent_document_returns_404(isolated_client):
     response = isolated_client.get("/api/v1/documents/999999")
     assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_failed_upload_can_be_retried_instead_of_permanently_blocked(isolated_client):
+    """Regression test: a transient processing failure (e.g. an embedding
+    API error partway through a large upload) must not permanently block
+    every future re-upload of that same file via the duplicate-hash check.
+    """
+    pdf_bytes = make_pdf_bytes("Content that will fail to embed on the first attempt.")
+
+    class BrokenEmbeddingService:
+        def generate_embeddings(self, texts):
+            raise RuntimeError("Simulated embedding API failure.")
+
+    # First attempt: embedding fails, document is marked FAILED.
+    app.dependency_overrides[get_embedding_service] = lambda: BrokenEmbeddingService()
+    first = isolated_client.post(
+        "/api/v1/documents/upload",
+        files=[("files", ("retry_me.pdf", pdf_bytes, "application/pdf"))],
+    )
+    first_result = first.json()["results"][0]
+    assert first_result["status"] == "FAILED"
+    assert first_result["success"] is False
+    # Regression: a failed upload must still surface a document_id so the
+    # caller can inspect/correlate it (previously this was always null).
+    assert first_result["document_id"] is not None
+    first_document_id = first_result["document_id"]
+
+    # Second attempt with the same file content: must retry (reusing the
+    # same document row), not be rejected as "already uploaded".
+    app.dependency_overrides[get_embedding_service] = lambda: FakeEmbeddingService()
+    second = isolated_client.post(
+        "/api/v1/documents/upload",
+        files=[("files", ("retry_me.pdf", pdf_bytes, "application/pdf"))],
+    )
+    second_result = second.json()["results"][0]
+    assert second_result["success"] is True
+    assert second_result["status"] == "COMPLETED"
+    assert second_result["document_id"] == first_document_id  # same row, reused
+
+    detail = isolated_client.get(f"/api/v1/documents/{first_document_id}").json()
+    assert detail["status"] == "COMPLETED"
+    assert detail["error_message"] is None
+
+
+def test_failed_upload_persists_full_error_details_for_diagnosis(isolated_client):
+    """Regression test: the root-cause detail of a processing failure (e.g.
+    'Connection error' from the OpenAI client) must be persisted on the
+    document and returned by the API, not just a generic message -- so the
+    failure is diagnosable without needing live backend terminal/log access.
+    """
+    from backend.app.core.exceptions import ExternalAPIException
+
+    pdf_bytes = make_pdf_bytes("Content whose embedding call fails with a specific root cause.")
+
+    class BrokenEmbeddingServiceWithDetails:
+        def generate_embeddings(self, texts):
+            raise ExternalAPIException(
+                message="Failed to generate embeddings via OpenAI after multiple retries.",
+                details="APIConnectionError: Connection error.",
+            )
+
+    app.dependency_overrides[get_embedding_service] = lambda: BrokenEmbeddingServiceWithDetails()
+    response = isolated_client.post(
+        "/api/v1/documents/upload",
+        files=[("files", ("diagnose_me.pdf", pdf_bytes, "application/pdf"))],
+    )
+    result = response.json()["results"][0]
+    assert result["status"] == "FAILED"
+    assert "Connection error" in result["message"]
+
+    detail = isolated_client.get(f"/api/v1/documents/{result['document_id']}").json()
+    assert "Connection error" in detail["error_message"]

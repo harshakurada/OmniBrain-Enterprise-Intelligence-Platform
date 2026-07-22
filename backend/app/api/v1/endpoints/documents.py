@@ -52,12 +52,12 @@ def upload_documents(
             results.append(
                 DocumentUploadItemResult(
                     filename=filename,
-                    success=True,
+                    success=document.status == "COMPLETED",
                     status=document.status,
                     document_id=document.id,
                     page_count=document.page_count,
                     chunk_count=document.chunk_count,
-                    message="Document ingested successfully.",
+                    message=document.error_message or "Document ingested successfully.",
                 )
             )
         except AppException as exc:

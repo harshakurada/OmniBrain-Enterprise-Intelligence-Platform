@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import re
@@ -15,6 +16,27 @@ class RequestIdLogFilter(logging.Filter):
     def filter(self, record: logging.LogRecord) -> bool:
         record.request_id = get_request_id()
         return True
+
+
+class JsonLogFormatter(logging.Formatter):
+    """Renders log records as single-line JSON (Module 7), for deployments
+    where a log aggregator (e.g. CloudWatch, Loki, ELK) parses structured
+    fields rather than free-text lines. Selected via `LOG_FORMAT=json`.
+    """
+
+    def format(self, record: logging.LogRecord) -> str:
+        payload = {
+            "timestamp": self.formatTime(record, "%Y-%m-%dT%H:%M:%S"),
+            "level": record.levelname,
+            "request_id": getattr(record, "request_id", "-"),
+            "logger": record.name,
+            "function": record.funcName,
+            "line": record.lineno,
+            "message": record.getMessage(),
+        }
+        if record.exc_info:
+            payload["exception"] = self.formatException(record.exc_info)
+        return json.dumps(payload)
 
 
 def parse_rotation_size(rotation_str: str) -> int:
@@ -50,11 +72,15 @@ def setup_logging() -> None:
     if root_logger.handlers:
         root_logger.handlers.clear()
 
-    # Formatter (Module 6: includes the per-request correlation id)
-    formatter = logging.Formatter(
-        fmt="%(asctime)s | %(levelname)-8s | req=%(request_id)s | %(name)s:%(funcName)s:%(lineno)d - %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
+    # Formatter (Module 6: includes the per-request correlation id; Module 7:
+    # optional JSON output for log aggregators via LOG_FORMAT=json).
+    if settings.LOG_FORMAT == "json":
+        formatter: logging.Formatter = JsonLogFormatter()
+    else:
+        formatter = logging.Formatter(
+            fmt="%(asctime)s | %(levelname)-8s | req=%(request_id)s | %(name)s:%(funcName)s:%(lineno)d - %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
+        )
     request_id_filter = RequestIdLogFilter()
 
     # Console Handler

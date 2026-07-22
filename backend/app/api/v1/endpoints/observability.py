@@ -50,6 +50,8 @@ def system_health(
 
     return SystemHealthResponse(
         status=overall_status,
+        version=settings.APP_VERSION,
+        environment=settings.ENVIRONMENT,
         database=checks["database"],
         vector_backend=vector_store.backend_name,
         guardrails_enabled=settings.GUARDRAILS_ENABLED,

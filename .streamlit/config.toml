@@ -1,0 +1,17 @@
+# OmniBrain Streamlit deployment configuration (Module 7).
+# Applies to any `streamlit run` invocation (local or in Docker); CLI flags
+# passed at runtime (e.g. --server.port) still take precedence over this file.
+
+[server]
+headless = true
+runOnSave = false
+# enableXsrfProtection defaults to true and requires enableCORS to also be
+# true (Streamlit rejects the combination enableCORS=false + XSRF=true), so
+# CORS is left at its secure default here.
+enableXsrfProtection = true
+
+[browser]
+gatherUsageStats = false
+
+[theme]
+base = "dark"

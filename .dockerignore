@@ -30,8 +30,9 @@ logs/
 scratch/
 tmp/
 
-# Streamlit config
-.streamlit/
+# Streamlit local secrets (the checked-in .streamlit/config.toml IS included
+# in the build context -- it holds no secrets, only deployment settings)
+.streamlit/secrets.toml
 
 # Docker build metadata
 Dockerfile

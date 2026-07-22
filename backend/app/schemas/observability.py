@@ -3,9 +3,11 @@ from pydantic import BaseModel, Field
 
 
 class SystemHealthResponse(BaseModel):
-    """Deep system health check covering every Module 6 reliability subsystem."""
+    """Deep system health check covering every reliability subsystem."""
 
     status: str = Field(..., description="'healthy' or 'degraded'")
+    version: str
+    environment: str
     database: str
     vector_backend: str
     guardrails_enabled: bool

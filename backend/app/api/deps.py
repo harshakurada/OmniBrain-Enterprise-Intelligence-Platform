@@ -26,14 +26,25 @@ from backend.app.services.vision_analysis_service import VisionAnalysisService
 from backend.app.services.visual_asset_service import VisualAssetService
 
 
+# Module 7: these providers are cached process-wide (rather than reconstructed
+# per request) because they are stateless and, for the OpenAI-backed ones,
+# hold a reusable HTTP client/connection pool -- reconstructing them per
+# request would tear down and rebuild that pool on every call for no benefit.
+# Providers that carry request-scoped state (a DB `Session`) are deliberately
+# NOT cached -- see `get_document_ingestion_service`, `get_sql_database_service`.
+
+
+@lru_cache(maxsize=1)
 def get_pdf_parser_service() -> PDFParserService:
     return PDFParserService()
 
 
+@lru_cache(maxsize=1)
 def get_chunking_service() -> RecursiveChunkingService:
     return RecursiveChunkingService()
 
 
+@lru_cache(maxsize=1)
 def get_embedding_service() -> EmbeddingService:
     return EmbeddingService()
 
@@ -54,6 +65,7 @@ def get_semantic_search_service(
 # ---------------------------------------------------------------------------
 
 
+@lru_cache(maxsize=1)
 def get_vision_analysis_service() -> VisionAnalysisService:
     return VisionAnalysisService()
 
@@ -91,6 +103,7 @@ def get_sql_database_service(readonly_db: Session = Depends(get_readonly_db)) ->
     return SQLDatabaseService(readonly_db=readonly_db)
 
 
+@lru_cache(maxsize=1)
 def get_text_to_sql_service() -> TextToSQLService:
     return TextToSQLService()
 
@@ -100,6 +113,7 @@ def get_text_to_sql_service() -> TextToSQLService:
 # ---------------------------------------------------------------------------
 
 
+@lru_cache(maxsize=1)
 def get_supervisor_agent() -> SupervisorAgent:
     return SupervisorAgent()
 
@@ -123,6 +137,7 @@ def get_sql_agent(
     return SQLAgent(text_to_sql=text_to_sql, database_service=database_service)
 
 
+@lru_cache(maxsize=1)
 def get_response_synthesizer() -> ResponseSynthesizer:
     return ResponseSynthesizer()
 
@@ -140,10 +155,12 @@ def get_checkpoint_saver() -> MemorySaver:
 # ---------------------------------------------------------------------------
 
 
+@lru_cache(maxsize=1)
 def get_input_guardrail_service() -> InputGuardrailService:
     return InputGuardrailService()
 
 
+@lru_cache(maxsize=1)
 def get_output_guardrail_service() -> OutputGuardrailService:
     return OutputGuardrailService()
 

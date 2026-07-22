@@ -3,6 +3,9 @@ from typing import List, Union
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+ALLOWED_ENVIRONMENTS = {"development", "staging", "production"}
+ALLOWED_LOG_FORMATS = {"text", "json"}
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
@@ -12,6 +15,7 @@ class Settings(BaseSettings):
     )
 
     # General Settings
+    APP_VERSION: str = "1.0.0"
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
     PROJECT_NAME: str = "OmniBrain – Agentic Multi-Modal RAG Orchestrator"
@@ -21,12 +25,14 @@ class Settings(BaseSettings):
     BACKEND_PORT: int = 8000
     API_V1_PREFIX: str = "/api/v1"
     CORS_ORIGINS: Union[str, List[str]] = ["*"]
+    UVICORN_WORKERS: int = 1  # see `is_production` docstring: keep at 1 unless in-process state is externalized
 
     # Database Settings
     DATABASE_URL: str = "sqlite:///./omnibrain.db"
 
     # Logging Settings
     LOG_LEVEL: str = "INFO"
+    LOG_FORMAT: str = "text"  # "text" or "json" (Module 7: structured logs for log aggregators)
     LOG_FILE_PATH: str = "logs/omnibrain.log"
     LOG_ROTATION: str = "10 MB"
     LOG_BACKUP_COUNT: int = 5
@@ -79,11 +85,6 @@ class Settings(BaseSettings):
     METRICS_HISTORY_SIZE: int = 500  # capped in-memory history of API requests / agent executions
     EVALUATION_HISTORY_SIZE: int = 200  # capped in-memory history of evaluation reports
 
-    # Observability Settings
-    LANGFUSE_PUBLIC_KEY: str = "mock-key"
-    LANGFUSE_SECRET_KEY: str = "mock-key"
-    LANGFUSE_HOST: str = "https://cloud.langfuse.com"
-
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:
@@ -98,6 +99,26 @@ class Settings(BaseSettings):
             except Exception:
                 pass
         return v  # type: ignore
+
+    @field_validator("ENVIRONMENT")
+    @classmethod
+    def validate_environment(cls, v: str) -> str:
+        normalized = v.strip().lower()
+        if normalized not in ALLOWED_ENVIRONMENTS:
+            raise ValueError(f"ENVIRONMENT must be one of {sorted(ALLOWED_ENVIRONMENTS)}, got '{v}'.")
+        return normalized
+
+    @field_validator("LOG_FORMAT")
+    @classmethod
+    def validate_log_format(cls, v: str) -> str:
+        normalized = v.strip().lower()
+        if normalized not in ALLOWED_LOG_FORMATS:
+            raise ValueError(f"LOG_FORMAT must be one of {sorted(ALLOWED_LOG_FORMATS)}, got '{v}'.")
+        return normalized
+
+    @property
+    def is_production(self) -> bool:
+        return self.ENVIRONMENT == "production"
 
 
 # Instantiate settings singleton
