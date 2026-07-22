@@ -4,6 +4,30 @@ OmniBrain is a production-ready, multi-agent Retrieval-Augmented Generation (RAG
 
 ---
 
+## 🚀 Live Demo
+
+This project runs as two local services (FastAPI backend + Streamlit UI) rather than a single hosted app, so there is no public URL to click — run it on your own machine in under a minute:
+
+```bash
+git clone https://github.com/harshakurada/OmniBrain-Enterprise-Intelligence-Platform.git
+cd OmniBrain-Enterprise-Intelligence-Platform
+pip install -r requirements.txt
+cp .env.example .env   # then set a real OPENAI_API_KEY inside .env
+
+python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 &
+streamlit run frontend/app.py
+```
+
+| | |
+|---|---|
+| **Streamlit UI** | http://127.0.0.1:8501 |
+| **API docs (Swagger)** | http://127.0.0.1:8000/docs |
+| **Health check** | http://127.0.0.1:8000/api/v1/health |
+
+Try it: **Upload Documents** → upload a PDF → **Orchestrator Chat** → ask a question about it → watch the live multi-agent trace and grounded, cited answer. See [Section 8](#8-docker-deployment) for a one-command Docker Compose deployment instead.
+
+---
+
 ## 1. Architecture Overview
 
 ### Module map

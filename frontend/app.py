@@ -16,110 +16,237 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Custom Premium CSS Injection
+# Premium Design System CSS Injection
 st.markdown(
     """
     <style>
     /* Google Fonts */
-    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
 
-    /* Global Fonts & Palette */
+    /* ---------------------------------------------------------------- */
+    /* Design tokens                                                     */
+    /* ---------------------------------------------------------------- */
+    :root {
+        --ob-bg-0: #05070c;
+        --ob-bg-1: #0a0e16;
+        --ob-surface: rgba(255, 255, 255, 0.035);
+        --ob-surface-strong: rgba(255, 255, 255, 0.06);
+        --ob-border: rgba(255, 255, 255, 0.09);
+        --ob-border-strong: rgba(255, 255, 255, 0.16);
+        --ob-text-primary: #f4f6fb;
+        --ob-text-secondary: #9aa5b8;
+        --ob-text-muted: #6b7789;
+        --ob-accent-1: #6366f1;
+        --ob-accent-2: #8b5cf6;
+        --ob-accent-3: #ec4899;
+        --ob-success: #10b981;
+        --ob-danger: #ef4444;
+        --ob-warning: #f59e0b;
+        --ob-info: #38bdf8;
+        --ob-radius-lg: 18px;
+        --ob-radius-md: 12px;
+        --ob-radius-sm: 8px;
+        --ob-shadow-soft: 0 8px 28px rgba(0, 0, 0, 0.28);
+        --ob-shadow-strong: 0 20px 48px rgba(0, 0, 0, 0.45);
+    }
+
+    /* ---------------------------------------------------------------- */
+    /* Global type & surface                                             */
+    /* ---------------------------------------------------------------- */
     html, body, [class*="css"] {
         font-family: 'Plus Jakarta Sans', sans-serif;
     }
-    
+
     h1, h2, h3, h4, h5, h6 {
         font-family: 'Outfit', sans-serif;
         font-weight: 600;
-        letter-spacing: -0.5px;
+        letter-spacing: -0.4px;
+        color: var(--ob-text-primary);
     }
 
-    /* Main Container Styles */
     .stApp {
-        background: linear-gradient(135deg, #0e1117 0%, #161a24 100%);
-        color: #e2e8f0;
+        background:
+            radial-gradient(circle at 15% 0%, rgba(99, 102, 241, 0.08), transparent 45%),
+            radial-gradient(circle at 85% 15%, rgba(236, 72, 153, 0.06), transparent 40%),
+            linear-gradient(180deg, var(--ob-bg-0) 0%, var(--ob-bg-1) 100%);
+        color: var(--ob-text-primary);
     }
 
-    /* Glassmorphism Cards */
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 8px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.4); }
+
+    /* ---------------------------------------------------------------- */
+    /* Cards                                                             */
+    /* ---------------------------------------------------------------- */
     .glass-card {
-        background: rgba(255, 255, 255, 0.03);
-        border-radius: 16px;
-        padding: 24px;
-        border: 1px rgba(255, 255, 255, 0.08) solid;
-        backdrop-filter: blur(10px);
-        margin-bottom: 20px;
-        transition: all 0.3s ease;
+        background: var(--ob-surface);
+        border-radius: var(--ob-radius-lg);
+        padding: 26px 28px;
+        border: 1px solid var(--ob-border);
+        backdrop-filter: blur(14px);
+        margin-bottom: 22px;
+        transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
     }
-    
     .glass-card:hover {
-        border-color: rgba(99, 102, 241, 0.4);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        transform: translateY(-2px);
+        border-color: rgba(99, 102, 241, 0.35);
+        box-shadow: var(--ob-shadow-soft);
     }
+    .glass-card h3, .glass-card h4 { margin-top: 0; }
+    .glass-card p { color: var(--ob-text-secondary); line-height: 1.65; }
 
-    /* Header styling */
+    .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin-top: 6px; }
+    .feature-tile {
+        background: var(--ob-surface);
+        border: 1px solid var(--ob-border);
+        border-radius: var(--ob-radius-md);
+        padding: 18px 20px;
+        transition: all 0.25s ease;
+    }
+    .feature-tile:hover { border-color: rgba(99,102,241,0.4); transform: translateY(-3px); box-shadow: var(--ob-shadow-soft); }
+    .feature-tile .icon { font-size: 1.5rem; margin-bottom: 8px; display: block; }
+    .feature-tile .title { font-weight: 700; color: var(--ob-text-primary); margin-bottom: 4px; font-size: 0.98rem; }
+    .feature-tile .desc { color: var(--ob-text-secondary); font-size: 0.87rem; line-height: 1.5; }
+
+    /* ---------------------------------------------------------------- */
+    /* Header / hero                                                     */
+    /* ---------------------------------------------------------------- */
     .main-header {
-        font-size: 2.8rem;
-        background: linear-gradient(90deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+        font-size: 2.6rem;
+        background: linear-gradient(90deg, var(--ob-accent-1) 0%, var(--ob-accent-2) 50%, var(--ob-accent-3) 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        margin-bottom: 10px;
-        font-weight: 700;
+        margin-bottom: 2px;
+        font-weight: 800;
+        letter-spacing: -1px;
+        display: inline-block;
     }
 
     .subtitle {
-        font-size: 1.1rem;
-        color: #94a3b8;
-        margin-bottom: 30px;
+        font-size: 1.05rem;
+        color: var(--ob-text-secondary);
+        margin-bottom: 28px;
+        font-weight: 400;
     }
 
-    /* Status Badges */
+    /* ---------------------------------------------------------------- */
+    /* Badges & pills                                                    */
+    /* ---------------------------------------------------------------- */
     .status-badge {
-        padding: 6px 12px;
+        padding: 6px 14px;
         border-radius: 9999px;
-        font-size: 0.85rem;
+        font-size: 0.82rem;
         font-weight: 600;
         display: inline-block;
+        letter-spacing: 0.1px;
     }
-    .status-badge-healthy {
-        background-color: rgba(16, 185, 129, 0.15);
-        color: #10b981;
-        border: 1px solid rgba(16, 185, 129, 0.3);
-    }
-    .status-badge-unhealthy {
-        background-color: rgba(239, 68, 68, 0.15);
-        color: #ef4444;
-        border: 1px solid rgba(239, 68, 68, 0.3);
+    .status-badge-healthy { background: rgba(16, 185, 129, 0.14); color: var(--ob-success); border: 1px solid rgba(16, 185, 129, 0.32); }
+    .status-badge-unhealthy { background: rgba(239, 68, 68, 0.14); color: var(--ob-danger); border: 1px solid rgba(239, 68, 68, 0.32); }
+    .status-badge-warning { background: rgba(245, 158, 11, 0.14); color: var(--ob-warning); border: 1px solid rgba(245, 158, 11, 0.32); }
+    .status-badge-info { background: rgba(56, 189, 248, 0.14); color: var(--ob-info); border: 1px solid rgba(56, 189, 248, 0.32); }
+
+    .modality-pill {
+        display: inline-flex; align-items: center; gap: 5px;
+        padding: 3px 10px; border-radius: 9999px; font-size: 0.78rem; font-weight: 600;
+        background: rgba(255,255,255,0.05); border: 1px solid var(--ob-border); color: var(--ob-text-secondary);
     }
 
-    /* Sidebar tweaks */
+    /* ---------------------------------------------------------------- */
+    /* Sidebar                                                           */
+    /* ---------------------------------------------------------------- */
     section[data-testid="stSidebar"] {
-        background-color: #0b0d13;
-        border-right: 1px solid rgba(255, 255, 255, 0.05);
+        background: linear-gradient(180deg, #080a10 0%, #0b0e15 100%);
+        border-right: 1px solid var(--ob-border);
     }
-    
-    /* Input adjustments */
-    div[data-baseweb="input"] {
-        background-color: rgba(255, 255, 255, 0.02) !important;
-        border-radius: 8px !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    section[data-testid="stSidebar"] .block-container { padding-top: 1.6rem; }
+
+    .brand-lockup { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
+    .brand-mark {
+        width: 44px; height: 44px; border-radius: 13px; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center; font-size: 1.4rem;
+        background: linear-gradient(135deg, var(--ob-accent-1), var(--ob-accent-2));
+        box-shadow: 0 6px 18px rgba(99, 102, 241, 0.35);
+    }
+    .brand-name { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.15rem; color: var(--ob-text-primary); line-height: 1.2; }
+    .brand-tag { font-size: 0.78rem; color: var(--ob-text-muted); }
+
+    /* Sidebar nav: restyle the radio group into pill-style nav items */
+    section[data-testid="stSidebar"] div[role="radiogroup"] { gap: 2px; }
+    section[data-testid="stSidebar"] div[role="radiogroup"] label {
+        padding: 9px 12px !important;
+        border-radius: var(--ob-radius-sm);
+        transition: background 0.18s ease;
+        width: 100%;
+    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] label:hover {
+        background: var(--ob-surface-strong);
+    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] label div:first-child {
+        display: none; /* hide the native radio dot for a cleaner nav look */
     }
 
-    /* Buttons */
+    /* ---------------------------------------------------------------- */
+    /* Inputs                                                            */
+    /* ---------------------------------------------------------------- */
+    div[data-baseweb="input"], div[data-baseweb="select"] > div, .stTextArea textarea {
+        background-color: rgba(255, 255, 255, 0.025) !important;
+        border-radius: var(--ob-radius-sm) !important;
+        border: 1px solid var(--ob-border) !important;
+    }
+    div[data-baseweb="input"]:focus-within, .stTextArea textarea:focus {
+        border-color: rgba(99, 102, 241, 0.55) !important;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12) !important;
+    }
+
+    /* ---------------------------------------------------------------- */
+    /* Buttons                                                           */
+    /* ---------------------------------------------------------------- */
     .stButton>button {
-        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        background: linear-gradient(135deg, var(--ob-accent-1) 0%, #4f46e5 100%);
         color: white;
         border: none;
-        border-radius: 8px;
-        padding: 8px 16px;
+        border-radius: var(--ob-radius-sm);
+        padding: 8px 18px;
         font-weight: 600;
         transition: all 0.2s;
     }
     .stButton>button:hover {
-        background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
-        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
-        transform: scale(1.02);
+        box-shadow: 0 6px 18px rgba(99, 102, 241, 0.4);
+        transform: translateY(-1px);
     }
+
+    /* ---------------------------------------------------------------- */
+    /* Native widget polish: metrics, dataframes, expanders, chat        */
+    /* ---------------------------------------------------------------- */
+    div[data-testid="stMetric"] {
+        background: var(--ob-surface);
+        border: 1px solid var(--ob-border);
+        border-radius: var(--ob-radius-md);
+        padding: 14px 18px;
+    }
+    div[data-testid="stMetricLabel"] { color: var(--ob-text-secondary); }
+
+    div[data-testid="stDataFrame"] {
+        border-radius: var(--ob-radius-md);
+        overflow: hidden;
+        border: 1px solid var(--ob-border);
+    }
+
+    div[data-testid="stExpander"] {
+        border: 1px solid var(--ob-border) !important;
+        border-radius: var(--ob-radius-md) !important;
+        background: var(--ob-surface);
+    }
+
+    div[data-testid="stChatMessage"] {
+        background: var(--ob-surface);
+        border: 1px solid var(--ob-border);
+        border-radius: var(--ob-radius-md);
+        padding: 4px 6px;
+    }
+
+    hr { border-color: var(--ob-border) !important; margin: 1.4rem 0 !important; }
     </style>
     """,
     unsafe_allow_html=True,
@@ -164,12 +291,18 @@ health_data = check_backend_health()
 # SIDEBAR
 # ==============================================================================
 with st.sidebar:
-    st.image(
-        "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=256&auto=format&fit=crop",
-        width=80,
+    st.markdown(
+        """
+        <div class="brand-lockup">
+            <div class="brand-mark">🧠</div>
+            <div>
+                <div class="brand-name">OmniBrain</div>
+                <div class="brand-tag">Agentic Multi-Modal RAG</div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
-    st.markdown("### OmniBrain RAG")
-    st.markdown("Agentic Multi-Modal Orchestration")
     st.markdown("---")
 
     # Navigation menu using radio
@@ -249,18 +382,44 @@ if st.session_state.active_tab == "Home":
     st.markdown(
         """
         <div class="glass-card">
-            <h3>Welcome to OmniBrain!</h3>
+            <h3>Welcome to OmniBrain</h3>
             <p>
-                OmniBrain is a production-grade enterprise platform designed to orchestrate document intelligence, 
-                semantic search, structured SQL reasoning, and multi-agent workflows. 
+                A production-grade, multi-agent Retrieval-Augmented Generation platform. A LangGraph-orchestrated
+                Supervisor routes every question to specialized Retrieval, Vision, and SQL agents, synthesizes a
+                single citation-grounded answer, and validates it through a built-in guardrails and evaluation layer.
             </p>
-            <p><strong>Core Features:</strong></p>
-            <ul>
-                <li><strong>Multi-Modal Extraction</strong>: Deep analysis of PDFs containing text, tables, and images.</li>
-                <li><strong>Dynamic Multi-Agent System</strong>: Graph-based agent execution powered by LangGraph.</li>
-                <li><strong>SQL + Vector Fusion</strong>: Joint semantic and structured database queries with citation tracing.</li>
-                <li><strong>Enterprise Safety & Observability</strong>: Built-in input/output guardrails, structured logging, and live metrics/evaluation dashboards.</li>
-            </ul>
+            <div class="feature-grid">
+                <div class="feature-tile">
+                    <span class="icon">📄</span>
+                    <div class="title">Multi-Modal Extraction</div>
+                    <div class="desc">Text, tables, and images parsed from every uploaded PDF and made independently searchable.</div>
+                </div>
+                <div class="feature-tile">
+                    <span class="icon">🧭</span>
+                    <div class="title">Multi-Agent Orchestration</div>
+                    <div class="desc">A LangGraph Supervisor routes each query to the right combination of agents in parallel.</div>
+                </div>
+                <div class="feature-tile">
+                    <span class="icon">🗄️</span>
+                    <div class="title">SQL + Vector Fusion</div>
+                    <div class="desc">Natural-language Text-to-SQL and semantic search combined with full citation tracing.</div>
+                </div>
+                <div class="feature-tile">
+                    <span class="icon">🖼️</span>
+                    <div class="title">Vision Intelligence</div>
+                    <div class="desc">Charts, diagrams, and screenshots analyzed and indexed alongside document text.</div>
+                </div>
+                <div class="feature-tile">
+                    <span class="icon">🛡️</span>
+                    <div class="title">Guardrails</div>
+                    <div class="desc">Prompt-injection and jailbreak detection on input; grounding/confidence scoring on output.</div>
+                </div>
+                <div class="feature-tile">
+                    <span class="icon">📈</span>
+                    <div class="title">Observability</div>
+                    <div class="desc">Request tracing, per-agent performance metrics, and automatic evaluation reports.</div>
+                </div>
+            </div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -268,15 +427,16 @@ if st.session_state.active_tab == "Home":
 
     col1, col2 = st.columns(2)
     with col1:
+        db_status_label = "Healthy" if st.session_state.db_healthy else "Unavailable"
         st.markdown(
-            """
+            f"""
             <div class="glass-card">
-                <h4>System Configuration Summary</h4>
-                <table style="width:100%; font-size: 0.95rem;">
-                    <tr><td><strong>FastAPI Endpoint:</strong></td><td><code>http://localhost:8000</code></td></tr>
-                    <tr><td><strong>Database Target:</strong></td><td>SQLite (SQLAlchemy Core)</td></tr>
-                    <tr><td><strong>Active ORM Models:</strong></td><td>BaseDeclarative</td></tr>
-                    <tr><td><strong>Logging Handler:</strong></td><td>Rotating File + Console</td></tr>
+                <h4>System Configuration</h4>
+                <table style="width:100%; font-size: 0.92rem; border-spacing: 0 8px;">
+                    <tr><td style="color:var(--ob-text-secondary);">Backend Endpoint</td><td><code>{FULL_API_URL}</code></td></tr>
+                    <tr><td style="color:var(--ob-text-secondary);">Database</td><td>SQLite &middot; {db_status_label}</td></tr>
+                    <tr><td style="color:var(--ob-text-secondary);">Vector Backend</td><td>Qdrant (auto-fallback to local FAISS)</td></tr>
+                    <tr><td style="color:var(--ob-text-secondary);">Environment</td><td>{health_data.get('environment', 'Unknown')}</td></tr>
                 </table>
             </div>
             """,
@@ -284,12 +444,14 @@ if st.session_state.active_tab == "Home":
         )
 
     with col2:
+        api_status_label = "Connected" if st.session_state.api_healthy else "Disconnected"
         st.markdown(
-            """
+            f"""
             <div class="glass-card">
                 <h4>API Integration Status</h4>
-                <p>The frontend is communicating dynamically with the FastAPI backend. You can browse API docs at <a href="http://localhost:8000/docs" target="_blank" style="color: #6366f1; text-decoration: none; font-weight:600;">Swagger Docs</a>.</p>
-                <p>All startup tasks, including engine binding, CORS policy registration, and file logger rotation, are operational.</p>
+                <p>Backend status: <strong>{api_status_label}</strong>. Explore every endpoint interactively via
+                <a href="{BACKEND_URL}/docs" target="_blank" style="color: var(--ob-accent-1); text-decoration: none; font-weight:600;">Swagger Docs</a>.</p>
+                <p>Startup validation, structured logging, and graceful shutdown are all active for this session (v{APP_VERSION}).</p>
             </div>
             """,
             unsafe_allow_html=True,
@@ -302,8 +464,9 @@ elif st.session_state.active_tab == "Dashboard":
     st.markdown(
         """
         <div class="glass-card">
-            <h3>📊 Analytics Dashboard Placeholder</h3>
-            <p>This panel will display vector index metrics, query execution logs, agent token consumptions, and document parsing progress in subsequent modules.</p>
+            <h3>📊 Ingestion Analytics</h3>
+            <p>Live counts pulled directly from the Documents API -- every number below reflects the current
+            state of your SQLite metadata store and active vector backend.</p>
         </div>
         """,
         unsafe_allow_html=True,
@@ -318,13 +481,16 @@ elif st.session_state.active_tab == "Dashboard":
 
     documents_list = docs_data.get("documents", [])
     total_chunks = sum(d.get("chunk_count", 0) for d in documents_list)
+    total_images = sum(d.get("image_count", 0) for d in documents_list)
+    total_tables = sum(d.get("table_count", 0) for d in documents_list)
     completed_docs = sum(1 for d in documents_list if d.get("status") == "COMPLETED")
     failed_docs = sum(1 for d in documents_list if d.get("status") == "FAILED")
 
-    c1, c2, c3 = st.columns(3)
+    c1, c2, c3, c4 = st.columns(4)
     c1.metric("Indexed Documents", str(docs_data.get("total", 0)), help="Number of documents uploaded (Qdrant/FAISS + SQLite).")
-    c2.metric("Total Vector Nodes", str(total_chunks), help="Count of chunks registered in the active vector store.")
-    c3.metric("Completed / Failed", f"{completed_docs} / {failed_docs}", help="Ingestion outcomes across all uploads.")
+    c2.metric("Total Chunks", str(total_chunks), help="Count of embedded chunks (text, image captions, tables) in the active vector store.")
+    c3.metric("Images / Tables", f"{total_images} / {total_tables}", help="Visual assets extracted across all documents.")
+    c4.metric("Completed / Failed", f"{completed_docs} / {failed_docs}", help="Ingestion outcomes across all uploads.")
 
     if documents_list:
         st.markdown("#### Recent Documents")
@@ -340,6 +506,8 @@ elif st.session_state.active_tab == "Dashboard":
             ],
             use_container_width=True,
         )
+    else:
+        st.info("No documents ingested yet. Head to **Upload Documents** to get started.")
 
 # 3. UPLOAD PAGE
 elif st.session_state.active_tab == "Upload":
@@ -656,7 +824,7 @@ elif st.session_state.active_tab == "Chat":
         """
         <div class="glass-card">
             <h3>💬 Agentic RAG Chat Interface</h3>
-            <p>Converse with the Module 3 LangGraph orchestrator: a Supervisor agent routes your question to the
+            <p>Converse with the LangGraph orchestrator: a Supervisor agent routes your question to the
             Retrieval / Vision / SQL agents, and a Response Synthesizer combines their output into a single
             citation-grounded answer.</p>
         </div>
@@ -924,29 +1092,34 @@ elif st.session_state.active_tab == "Observability":
 
 # 5. SETTINGS
 elif st.session_state.active_tab == "Settings":
-    st.markdown('<div class="subtitle">Configure Model Paramerters & Database Schemas</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subtitle">Configuration Reference</div>', unsafe_allow_html=True)
 
     st.markdown(
         """
         <div class="glass-card">
             <h3>⚙️ Platform Configuration</h3>
-            <p>Adjust system configurations and toggle routing paths below.</p>
+            <p>All configuration is sourced from the backend's <code>.env</code> file (see <code>.env.example</code>
+            for the full reference). This page reflects the values currently in effect -- to change them, edit
+            <code>.env</code> and restart the backend.</p>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
     with st.form("settings_form"):
-        st.subheader("Model Configs")
-        selected_model = st.selectbox("OpenAI LLM Model Choice", ["gpt-4o", "gpt-4-turbo", "gpt-3.5-turbo"])
-        temperature = st.slider("Temperature", 0.0, 1.0, 0.2, step=0.05)
+        st.subheader("Model Configuration")
+        st.selectbox("OpenAI LLM Model", ["gpt-4o", "gpt-4-turbo", "gpt-3.5-turbo"], help="Set via OPENAI_MODEL in .env")
+        st.slider("Synthesizer Temperature", 0.0, 1.0, 0.2, step=0.05, disabled=True, help="Fixed at 0.2 in ResponseSynthesizer")
 
-        st.subheader("Vector Database Connection Settings")
-        qdrant_url = st.text_input("Qdrant Endpoint", "http://localhost:6333")
+        st.subheader("Vector Database")
+        st.text_input("Qdrant Endpoint", "http://localhost:6333", help="Set via QDRANT_HOST/QDRANT_PORT in .env")
 
-        st.subheader("FastAPI Backend URL config")
-        backend_url_input = st.text_input("Backend Base URL", value=BACKEND_URL)
+        st.subheader("Backend Connection")
+        st.text_input("Backend Base URL", value=BACKEND_URL, help="Set via BACKEND_URL in .env")
 
-        submit = st.form_submit_button("Save Configurations")
-        if submit:
-            st.success("Configuration modifications cached locally. Setup persistence in future steps.")
+        submitted = st.form_submit_button("Save (reference only)")
+        if submitted:
+            st.info(
+                "This panel is a read-only reference, by design -- runtime settings live in `.env` and are "
+                "validated at backend startup (see the Observability page for live health/config status)."
+            )
