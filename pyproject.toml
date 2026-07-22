@@ -1,0 +1,18 @@
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-ra -q"
+testpaths = [
+    "tests",
+]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+asyncio_mode = "auto"
+
+[tool.ruff]
+line-length = 88
+select = ["E", "F", "I", "N", "W", "UP", "B", "C4"]
+ignore = []
+
+[tool.ruff.isort]
+known-first-party = ["backend", "frontend"]

@@ -1,0 +1,39 @@
+# Git
+.git
+.gitignore
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.tox/
+.coverage
+htmlcov/
+.mypy_cache/
+
+# Databases
+*.db
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+
+# Configuration & Secrets
+.env
+.env.local
+.env.*
+
+# Logs & Temp
+logs/
+*.log
+scratch/
+tmp/
+
+# Streamlit config
+.streamlit/
+
+# Docker build metadata
+Dockerfile
+docker-compose.yml
+.dockerignore
