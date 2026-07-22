@@ -171,19 +171,18 @@ st.markdown(
     .brand-name { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.15rem; color: var(--ob-text-primary); line-height: 1.2; }
     .brand-tag { font-size: 0.78rem; color: var(--ob-text-muted); }
 
-    /* Sidebar nav: restyle the radio group into pill-style nav items */
+    /* Sidebar nav: pill-style hover/spacing for the radio group. Deliberately
+       does NOT hide/restructure any part of the radio's DOM (that previously
+       broke click handling) -- only adds padding, radius, and a hover fill. */
     section[data-testid="stSidebar"] div[role="radiogroup"] { gap: 2px; }
     section[data-testid="stSidebar"] div[role="radiogroup"] label {
-        padding: 9px 12px !important;
+        padding: 6px 10px !important;
         border-radius: var(--ob-radius-sm);
         transition: background 0.18s ease;
         width: 100%;
     }
     section[data-testid="stSidebar"] div[role="radiogroup"] label:hover {
         background: var(--ob-surface-strong);
-    }
-    section[data-testid="stSidebar"] div[role="radiogroup"] label div:first-child {
-        display: none; /* hide the native radio dot for a cleaner nav look */
     }
 
     /* ---------------------------------------------------------------- */
