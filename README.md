@@ -73,7 +73,7 @@ Conversation state and execution history persist per `thread_id` via LangGraph's
 
 ```
 backend/app/
-├── api/            FastAPI routers + dependency-injection providers (deps.py)
+├── api/            FastAPI routers + dependency-injection providers (deps.py
 ├── agents/         LangGraph nodes, graph assembly, orchestrator entry point
 ├── guardrails/      Input/output safety checks (Module 6)
 ├── evaluation/      Automatic per-run evaluation reports (Module 6)
