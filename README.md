@@ -165,7 +165,7 @@ All configuration is centralized in `backend/app/config/settings.py` (Pydantic `
 | Vision | `VISION_MODEL`, `VISION_MIN_IMAGE_DIMENSION`, `VISION_MAX_IMAGES_PER_DOCUMENT` | |
 | SQL | `SQL_MAX_ROWS` | Caps rows returned/read-only-enforced by the SQL Agent |
 | Guardrails | `GUARDRAILS_ENABLED`, `GUARDRAIL_MAX_INPUT_LENGTH` | |
-| Observability | `METRICS_HISTORY_SIZE`, `EVALUATION_HISTORY_SIZE` | Capped in-memory history sizes |
+| Observability | `METRICS_HISTORY_SIZE`, `EVALUATION_HISTORY_SIZE` | Capped in-memory history sizes ||
 
 ### Secrets handling
 - `.env` is git-ignored (only `.env.example`, with placeholder values, is committed).
