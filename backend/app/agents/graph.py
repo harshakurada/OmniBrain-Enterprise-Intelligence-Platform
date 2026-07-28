@@ -101,6 +101,13 @@ def build_orchestrator_graph(
     def supervisor_node(state: AgentState) -> Dict[str, Any]:
         started = time.perf_counter()
         query = state["query"]
+        # Reset per-turn agent outputs unconditionally. State is checkpointed per
+        # thread_id across the whole conversation, but these fields are last-write
+        # -wins -- without this reset, an agent NOT invoked this turn (because the
+        # question didn't need it) would leave its PREVIOUS turn's results in
+        # state, and the synthesizer would blend that stale, unrelated context
+        # into the new answer.
+        reset_fields = {"retrieval_results": [], "vision_result": None, "sql_result": None}
         try:
             decision = supervisor.decide(query)
             agents = [a for a in decision.agents if a in ("retrieval", "vision", "sql")] or ["retrieval"]
@@ -109,6 +116,7 @@ def build_orchestrator_graph(
                 f"intent={decision.intent}, agents={agents}", started,
             )
             return {
+                **reset_fields,
                 "intent": decision.intent,
                 "agents_to_invoke": agents,
                 "routing_reasoning": decision.reasoning,
@@ -118,6 +126,7 @@ def build_orchestrator_graph(
             logger.exception("Supervisor routing failed; defaulting to retrieval agent.")
             trace = _trace_entry("supervisor", "classify_intent", "error", str(exc), started)
             return {
+                **reset_fields,
                 "intent": "retrieval",
                 "agents_to_invoke": ["retrieval"],
                 "routing_reasoning": "Fallback: routing failure, defaulted to retrieval.",
