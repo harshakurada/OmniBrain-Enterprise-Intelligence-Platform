@@ -145,7 +145,7 @@ streamlit run frontend/app.py
 pytest
 ```
 
-The suite (171 tests as of Module 7) runs entirely offline against deterministic fakes for the OpenAI/embedding/vision/SQL-generation calls — no API key or running Qdrant instance required.
+The suite (170 tests as of Module 7) runs entirely offline against deterministic fakes for the OpenAI/embedding/vision/SQL-generation calls — no API key or running Qdrant instance required.
 
 ---
 
