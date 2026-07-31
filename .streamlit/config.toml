@@ -15,3 +15,10 @@ gatherUsageStats = false
 
 [theme]
 base = "dark"
+primaryColor = "#2f81f7"
+backgroundColor = "#0b0d10"
+secondaryBackgroundColor = "#15181c"
+textColor = "#e6e8eb"
+font = "sans serif"
+borderColor = "#262b31"
+
