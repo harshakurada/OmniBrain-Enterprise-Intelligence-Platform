@@ -77,6 +77,14 @@ st.markdown(
     ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 8px; }
     ::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.4); }
 
+    @keyframes obFadeInUp {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .glass-card, .feature-tile, div[data-testid="stMetric"] {
+        animation: obFadeInUp 0.35s ease both;
+    }
+
     /* ---------------------------------------------------------------- */
     /* Cards                                                             */
     /* ---------------------------------------------------------------- */
@@ -105,7 +113,17 @@ st.markdown(
         transition: all 0.25s ease;
     }
     .feature-tile:hover { border-color: rgba(99,102,241,0.4); transform: translateY(-3px); box-shadow: var(--ob-shadow-soft); }
-    .feature-tile .icon { font-size: 1.5rem; margin-bottom: 8px; display: block; }
+    .feature-tile .icon {
+        font-size: 1.25rem; margin-bottom: 10px; display: inline-flex; align-items: center;
+        justify-content: center; width: 38px; height: 38px; border-radius: 11px;
+        background: var(--ob-surface-strong);
+    }
+    .feature-tile:nth-child(6n+1) .icon { background: rgba(99,102,241,0.16); }
+    .feature-tile:nth-child(6n+2) .icon { background: rgba(56,189,248,0.16); }
+    .feature-tile:nth-child(6n+3) .icon { background: rgba(139,92,246,0.16); }
+    .feature-tile:nth-child(6n+4) .icon { background: rgba(236,72,153,0.16); }
+    .feature-tile:nth-child(6n+5) .icon { background: rgba(16,185,129,0.16); }
+    .feature-tile:nth-child(6n+6) .icon { background: rgba(245,158,11,0.16); }
     .feature-tile .title { font-weight: 700; color: var(--ob-text-primary); margin-bottom: 4px; font-size: 0.98rem; }
     .feature-tile .desc { color: var(--ob-text-secondary); font-size: 0.87rem; line-height: 1.5; }
 
@@ -184,6 +202,16 @@ st.markdown(
     section[data-testid="stSidebar"] div[role="radiogroup"] label:hover {
         background: var(--ob-surface-strong);
     }
+    /* Active-page highlight: adds a background/left-accent only, never touches
+       the input's hit area, so click handling from the earlier fix is untouched. */
+    section[data-testid="stSidebar"] div[role="radiogroup"] label:has(input:checked) {
+        background: linear-gradient(90deg, rgba(99,102,241,0.2), rgba(139,92,246,0.06));
+        box-shadow: inset 3px 0 0 var(--ob-accent-1);
+    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] label:has(input:checked) p {
+        color: var(--ob-text-primary) !important;
+        font-weight: 700 !important;
+    }
 
     /* ---------------------------------------------------------------- */
     /* Inputs                                                            */
@@ -214,6 +242,43 @@ st.markdown(
         box-shadow: 0 6px 18px rgba(99, 102, 241, 0.4);
         transform: translateY(-1px);
     }
+
+    /* ---------------------------------------------------------------- */
+    /* Page header + live status pill                                    */
+    /* ---------------------------------------------------------------- */
+    .header-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    .live-pulse {
+        display: inline-flex; align-items: center; gap: 8px; font-size: 0.82rem; font-weight: 600;
+        color: var(--ob-text-secondary); padding: 7px 15px; border-radius: 9999px;
+        border: 1px solid var(--ob-border); background: var(--ob-surface);
+    }
+    .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ob-success); animation: obPulse 1.8s infinite; }
+    .live-dot.down { background: var(--ob-danger); animation: none; }
+    @keyframes obPulse {
+        0% { box-shadow: 0 0 0 0 rgba(16,185,129,0.5); }
+        70% { box-shadow: 0 0 0 7px rgba(16,185,129,0); }
+        100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+    }
+
+    /* ---------------------------------------------------------------- */
+    /* Config rows (key/value display, replaces raw HTML tables)         */
+    /* ---------------------------------------------------------------- */
+    .config-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--ob-border); font-size: 0.92rem; gap: 12px; }
+    .config-row:last-child { border-bottom: none; }
+    .config-row .label { color: var(--ob-text-secondary); }
+    .config-row .value { color: var(--ob-text-primary); font-weight: 600; text-align: right; }
+    .config-row .value code { background: var(--ob-surface-strong); padding: 2px 8px; border-radius: 6px; }
+
+    /* ---------------------------------------------------------------- */
+    /* Agent trace chips (Orchestrator Chat)                             */
+    /* ---------------------------------------------------------------- */
+    .agent-chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 11px; border-radius: 9999px; font-size: 0.8rem; font-weight: 700; margin-right: 6px; }
+    .agent-chip-supervisor { background: rgba(99,102,241,0.14); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.3); }
+    .agent-chip-retrieval_agent { background: rgba(56,189,248,0.14); color: #7dd3fc; border: 1px solid rgba(56,189,248,0.3); }
+    .agent-chip-vision_agent { background: rgba(236,72,153,0.14); color: #f9a8d4; border: 1px solid rgba(236,72,153,0.3); }
+    .agent-chip-sql_agent { background: rgba(139,92,246,0.14); color: #c4b5fd; border: 1px solid rgba(139,92,246,0.3); }
+    .agent-chip-synthesizer { background: rgba(16,185,129,0.14); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.3); }
+    .agent-chip-default { background: rgba(255,255,255,0.06); color: var(--ob-text-secondary); border: 1px solid var(--ob-border); }
 
     /* ---------------------------------------------------------------- */
     /* Native widget polish: metrics, dataframes, expanders, chat        */
@@ -372,7 +437,24 @@ with st.sidebar:
 # ==============================================================================
 
 # Page Layout Header
-st.markdown('<div class="main-header">OmniBrain</div>', unsafe_allow_html=True)
+_overall_up = st.session_state.api_healthy and st.session_state.db_healthy
+_dot_class = "" if _overall_up else "down"
+if not st.session_state.api_healthy:
+    _status_text = "Backend disconnected"
+elif not st.session_state.db_healthy:
+    _status_text = "Database offline"
+else:
+    _status_text = "All systems operational"
+
+st.markdown(
+    f"""
+    <div class="header-row">
+        <div class="main-header">OmniBrain</div>
+        <div class="live-pulse"><span class="live-dot {_dot_class}"></span>{_status_text}</div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
 # 1. HOME PAGE
 if st.session_state.active_tab == "Home":
@@ -431,12 +513,10 @@ if st.session_state.active_tab == "Home":
             f"""
             <div class="glass-card">
                 <h4>System Configuration</h4>
-                <table style="width:100%; font-size: 0.92rem; border-spacing: 0 8px;">
-                    <tr><td style="color:var(--ob-text-secondary);">Backend Endpoint</td><td><code>{FULL_API_URL}</code></td></tr>
-                    <tr><td style="color:var(--ob-text-secondary);">Database</td><td>SQLite &middot; {db_status_label}</td></tr>
-                    <tr><td style="color:var(--ob-text-secondary);">Vector Backend</td><td>Qdrant (auto-fallback to local FAISS)</td></tr>
-                    <tr><td style="color:var(--ob-text-secondary);">Environment</td><td>{health_data.get('environment', 'Unknown')}</td></tr>
-                </table>
+                <div class="config-row"><span class="label">Backend Endpoint</span><span class="value"><code>{FULL_API_URL}</code></span></div>
+                <div class="config-row"><span class="label">Database</span><span class="value">SQLite &middot; {db_status_label}</span></div>
+                <div class="config-row"><span class="label">Vector Backend</span><span class="value">Qdrant (auto-fallback to local FAISS)</span></div>
+                <div class="config-row"><span class="label">Environment</span><span class="value">{health_data.get('environment', 'Unknown')}</span></div>
             </div>
             """,
             unsafe_allow_html=True,
@@ -692,21 +772,28 @@ elif st.session_state.active_tab == "Search":
                     if not search_data["results"]:
                         st.warning("No matching chunks found. Try uploading documents first or rephrasing your query.")
 
+                    SNIPPET_LIMIT = 260
                     for rank, item in enumerate(search_data["results"], start=1):
                         modality = item.get("chunk_type", "text")
                         icon = MODALITY_ICONS.get(modality, "📝")
+                        content = item["content"]
+                        is_long = len(content) > SNIPPET_LIMIT
+                        snippet = content[:SNIPPET_LIMIT].rsplit(" ", 1)[0] + "…" if is_long else content
                         with st.container():
                             st.markdown(
                                 f"""
                                 <div class="glass-card">
-                                    <p><strong>#{rank}</strong> {icon} <span style="color:#94a3b8;">{modality}</span>
+                                    <p><strong>#{rank}</strong> {icon} <span style="color:var(--ob-text-secondary);">{modality}</span>
                                     &nbsp; Similarity Score: <strong>{item['similarity_score']:.4f}</strong></p>
-                                    <p>{item['content']}</p>
-                                    <p style="color:#94a3b8; font-size:0.9rem;">📄 <strong>{item['filename']}</strong> — Page {item['page_number']}, Chunk #{item['chunk_index']}</p>
+                                    <p>{snippet}</p>
+                                    <p style="color:var(--ob-text-secondary); font-size:0.9rem;">📄 <strong>{item['filename']}</strong> — Page {item['page_number']}, Chunk #{item['chunk_index']}</p>
                                 </div>
                                 """,
                                 unsafe_allow_html=True,
                             )
+                            if is_long:
+                                with st.expander("Show full excerpt"):
+                                    st.write(content)
                 else:
                     st.error(f"Search failed: HTTP {search_response.status_code} — {search_response.text}")
             except Exception as e:
@@ -714,15 +801,15 @@ elif st.session_state.active_tab == "Search":
 
 # 3c. SQL INTELLIGENCE PAGE
 elif st.session_state.active_tab == "SQL":
-    st.markdown('<div class="subtitle">Natural-Language &amp; Raw SQL Access to OmniBrain\'s Structured Data</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subtitle">Ask Questions About Your Data — No SQL Knowledge Needed</div>', unsafe_allow_html=True)
 
     st.markdown(
         """
         <div class="glass-card">
             <h3>🗄️ SQL Intelligence</h3>
-            <p>The SQL Agent translates natural-language questions into read-only SQL over OmniBrain's own
-            ingestion database (documents, chunks, extracted assets), validates them, and executes them safely.
-            You can also browse the schema or run raw SQL directly below.</p>
+            <p>Type a question in plain English below (e.g. "How many documents have I uploaded?") and the AI
+            works out the right database query, runs it safely, and shows you the answer. You never need to
+            write SQL yourself — that's handled behind the scenes.</p>
         </div>
         """,
         unsafe_allow_html=True,
@@ -739,14 +826,14 @@ elif st.session_state.active_tab == "SQL":
 
     if sql_connected:
         st.markdown(
-            f'<div class="status-badge status-badge-healthy">Database: Connected · {len(available_tables)} table(s)</div>',
+            f'<div class="status-badge status-badge-healthy">✅ Ready — {len(available_tables)} data table(s) available</div>',
             unsafe_allow_html=True,
         )
     else:
-        st.markdown('<div class="status-badge status-badge-unhealthy">Database: Unreachable</div>', unsafe_allow_html=True)
+        st.markdown('<div class="status-badge status-badge-unhealthy">⚠️ Not connected — try again shortly</div>', unsafe_allow_html=True)
 
-    # --- Schema browser ---
-    with st.expander("📋 Schema Browser", expanded=False):
+    with st.expander("📋 What data can I ask about? (optional)", expanded=False):
+        st.caption("A quick reference of what's available — like a table of contents for your data. You don't need to read this to ask questions.")
         try:
             schema_resp = httpx.get(f"{FULL_API_URL}/sql/schema", timeout=5.0)
             schema_tables = schema_resp.json().get("tables", []) if schema_resp.status_code == 200 else []
@@ -756,64 +843,76 @@ elif st.session_state.active_tab == "SQL":
         for table in schema_tables:
             st.markdown(f"**{table['table_name']}**")
             st.dataframe(
-                [
-                    {
-                        "Column": c["name"],
-                        "Type": c["type"],
-                        "Nullable": c["nullable"],
-                        "Primary Key": c["primary_key"],
-                    }
-                    for c in table["columns"]
-                ],
+                [{"Column": c["name"], "Type": c["type"]} for c in table["columns"]],
                 use_container_width=True,
             )
 
     st.markdown("#### 💬 Ask a Question")
+    st.caption("Try one of these, or type your own question below:")
+
+    EXAMPLE_QUESTIONS = [
+        "How many documents have been uploaded?",
+        "Which documents failed to process?",
+        "How many images and tables were extracted?",
+    ]
+    if "sql_nl_question" not in st.session_state:
+        st.session_state.sql_nl_question = ""
+    chip_cols = st.columns(len(EXAMPLE_QUESTIONS))
+    for col, example in zip(chip_cols, EXAMPLE_QUESTIONS):
+        if col.button(example, key=f"sql_example_{example}", use_container_width=True):
+            st.session_state.sql_nl_question = example
+
     nl_question = st.text_input(
-        "Natural-language question", placeholder="e.g. How many documents have been uploaded?"
+        "Your question",
+        key="sql_nl_question",
+        placeholder="e.g. How many documents have been uploaded?",
+        label_visibility="collapsed",
     )
-    if st.button("🧠 Ask SQL Agent") and nl_question.strip():
-        with st.spinner("Generating and safely executing SQL..."):
+    if st.button("🧠 Get Answer", type="primary") and nl_question.strip():
+        with st.spinner("Thinking..."):
             try:
                 nl_response = httpx.post(f"{FULL_API_URL}/sql/query", json={"question": nl_question}, timeout=30.0)
                 if nl_response.status_code == 200:
                     nl_data = nl_response.json()
-                    st.caption(f"Status: `{nl_data['status']}` — {nl_data['message']}")
-                    if nl_data.get("sql"):
-                        st.code(nl_data["sql"], language="sql")
-                    if nl_data.get("explanation"):
-                        st.caption(f"💡 {nl_data['explanation']}")
                     if nl_data.get("rows"):
-                        st.markdown("**Query Results**")
+                        st.markdown("**Answer**")
                         st.dataframe(nl_data["rows"], use_container_width=True)
                         if nl_data.get("truncated"):
-                            st.info(f"Results truncated to the first {len(nl_data['rows'])} row(s).")
-                else:
-                    st.error(f"SQL query failed: HTTP {nl_response.status_code} — {nl_response.text}")
-            except Exception as e:
-                st.error(f"Could not reach the backend SQL API: {e}")
-
-    st.markdown("#### ⌨️ Raw SQL Query Interface")
-    raw_sql = st.text_area(
-        "Read-only SQL statement", placeholder="SELECT status, COUNT(*) AS total FROM documents GROUP BY status"
-    )
-    if st.button("▶️ Execute SQL") and raw_sql.strip():
-        with st.spinner("Validating and executing SQL..."):
-            try:
-                exec_response = httpx.post(f"{FULL_API_URL}/sql/execute", json={"sql": raw_sql}, timeout=30.0)
-                if exec_response.status_code == 200:
-                    exec_data = exec_response.json()
-                    st.success(exec_data["message"])
-                    st.code(exec_data["sql"], language="sql")
-                    if exec_data.get("rows"):
-                        st.dataframe(exec_data["rows"], use_container_width=True)
+                            st.caption(f"Showing the first {len(nl_data['rows'])} row(s).")
                     else:
-                        st.info("Query executed successfully but returned no rows.")
+                        st.info(nl_data.get("message") or "No matching data found for that question.")
+                    if nl_data.get("explanation"):
+                        st.caption(f"💡 {nl_data['explanation']}")
+                    if nl_data.get("sql"):
+                        with st.expander("See the exact database query that was run (optional)"):
+                            st.code(nl_data["sql"], language="sql")
                 else:
-                    error_detail = exec_response.json().get("error", {}).get("message", exec_response.text)
-                    st.error(f"SQL execution rejected: {error_detail}")
+                    st.error(f"Something went wrong: HTTP {nl_response.status_code} — {nl_response.text}")
             except Exception as e:
-                st.error(f"Could not reach the backend SQL API: {e}")
+                st.error(f"Could not reach the backend: {e}")
+
+    with st.expander("🛠️ Advanced: write raw SQL yourself (optional — only if you already know SQL)"):
+        st.caption("Most people don't need this — the question box above already does this for you automatically.")
+        raw_sql = st.text_area(
+            "Read-only SQL statement", placeholder="SELECT status, COUNT(*) AS total FROM documents GROUP BY status"
+        )
+        if st.button("▶️ Execute SQL") and raw_sql.strip():
+            with st.spinner("Validating and executing SQL..."):
+                try:
+                    exec_response = httpx.post(f"{FULL_API_URL}/sql/execute", json={"sql": raw_sql}, timeout=30.0)
+                    if exec_response.status_code == 200:
+                        exec_data = exec_response.json()
+                        st.success(exec_data["message"])
+                        st.code(exec_data["sql"], language="sql")
+                        if exec_data.get("rows"):
+                            st.dataframe(exec_data["rows"], use_container_width=True)
+                        else:
+                            st.info("Query executed successfully but returned no rows.")
+                    else:
+                        error_detail = exec_response.json().get("error", {}).get("message", exec_response.text)
+                        st.error(f"SQL execution rejected: {error_detail}")
+                except Exception as e:
+                    st.error(f"Could not reach the backend SQL API: {e}")
 
 # 4. CHAT PAGE
 elif st.session_state.active_tab == "Chat":
@@ -839,13 +938,26 @@ elif st.session_state.active_tab == "Chat":
         "synthesizer": "🧩",
     }
 
+    AGENT_CHIP_CLASS = {
+        "supervisor": "agent-chip-supervisor",
+        "retrieval_agent": "agent-chip-retrieval_agent",
+        "vision_agent": "agent-chip-vision_agent",
+        "sql_agent": "agent-chip-sql_agent",
+        "synthesizer": "agent-chip-synthesizer",
+    }
+
     def render_execution_trace(trace_steps: list) -> None:
         for step in trace_steps:
             icon = AGENT_ICONS.get(step["agent"], "⚙️")
+            chip_class = AGENT_CHIP_CLASS.get(step["agent"], "agent-chip-default")
             status_icon = "✅" if step["status"] == "success" else "⚠️"
-            st.caption(
-                f"{icon} **{step['agent']}** — {step['action']} {status_icon} "
-                f"({step['duration_ms']:.0f} ms) — {step['detail']}"
+            st.markdown(
+                f'<div style="margin:5px 0; font-size:0.85rem; color:var(--ob-text-secondary);">'
+                f'<span class="agent-chip {chip_class}">{icon} {step["agent"]}</span>'
+                f'{step["action"]} {status_icon} '
+                f'<span style="color:var(--ob-text-muted);">({step["duration_ms"]:.0f} ms)</span> — {step["detail"]}'
+                f'</div>',
+                unsafe_allow_html=True,
             )
 
     CITATION_MODALITY_ICONS = {"text": "📝", "image_caption": "🖼️", "table": "📊", "database": "🗄️"}
