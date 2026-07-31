@@ -772,13 +772,37 @@ elif st.session_state.active_tab == "Search":
                     if not search_data["results"]:
                         st.warning("No matching chunks found. Try uploading documents first or rephrasing your query.")
 
-                    SNIPPET_LIMIT = 260
+                    SNIPPET_WORD_LIMIT = 45
+
+                    def _make_snippet(content: str, query: str, word_limit: int = SNIPPET_WORD_LIMIT):
+                        """Returns (snippet, was_truncated). Caps at an exact word
+                        count (not characters, which only approximates word count)
+                        and centers the window on the first query-term match so the
+                        snippet is actually relevant to what was asked, instead of
+                        always showing the start of an arbitrary chunk.
+                        """
+                        words = content.split()
+                        if len(words) <= word_limit:
+                            return content, False
+
+                        query_terms = {w.lower().strip(".,?!:;\"'()") for w in query.split() if len(w) > 3}
+                        match_idx = next(
+                            (i for i, w in enumerate(words) if w.lower().strip(".,?!:;\"'()") in query_terms),
+                            None,
+                        )
+                        start = 0 if match_idx is None else max(0, match_idx - word_limit // 3)
+                        end = min(len(words), start + word_limit)
+                        start = max(0, end - word_limit)
+
+                        prefix = "…" if start > 0 else ""
+                        suffix = "…" if end < len(words) else ""
+                        return f"{prefix}{' '.join(words[start:end])}{suffix}", True
+
                     for rank, item in enumerate(search_data["results"], start=1):
                         modality = item.get("chunk_type", "text")
                         icon = MODALITY_ICONS.get(modality, "📝")
                         content = item["content"]
-                        is_long = len(content) > SNIPPET_LIMIT
-                        snippet = content[:SNIPPET_LIMIT].rsplit(" ", 1)[0] + "…" if is_long else content
+                        snippet, is_long = _make_snippet(content, query_text)
                         with st.container():
                             st.markdown(
                                 f"""
