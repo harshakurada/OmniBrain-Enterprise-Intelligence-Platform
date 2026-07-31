@@ -45,6 +45,21 @@ class OrchestratorService:
         graph state, augmented with the `thread_id` the run executed under.
         """
         thread_id = thread_id or str(uuid.uuid4())
+        config = {"configurable": {"thread_id": thread_id}}
+
+        # execution_trace/errors use an operator.add reducer so every node in a
+        # single run can append to them -- but that also means they accumulate
+        # across the ENTIRE checkpointed thread, not just this turn. Record how
+        # much history already exists before this call so it can be sliced back
+        # off below; otherwise turn 2+ would report/re-log turn 1's trace steps
+        # (and evaluation/metrics would double-count prior turns) every time.
+        try:
+            prior_snapshot = self.graph.get_state(config).values or {}
+        except Exception:
+            prior_snapshot = {}
+        prior_trace_len = len(prior_snapshot.get("execution_trace", []))
+        prior_errors_len = len(prior_snapshot.get("errors", []))
+
         initial_state: AgentState = {
             "query": query,
             "document_id": document_id,
@@ -52,11 +67,12 @@ class OrchestratorService:
             "execution_trace": [],
             "errors": [],
         }
-        config = {"configurable": {"thread_id": thread_id}}
 
         logger.info(f"Executing orchestration graph (thread_id={thread_id}) for query: {query!r}")
         final_state = self.graph.invoke(initial_state, config=config)
         final_state["thread_id"] = thread_id
+        final_state["execution_trace"] = final_state.get("execution_trace", [])[prior_trace_len:]
+        final_state["errors"] = final_state.get("errors", [])[prior_errors_len:]
 
         self._record_observability(thread_id, final_state)
         return final_state

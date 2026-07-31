@@ -9,11 +9,20 @@ logger = logging.getLogger("omnibrain.agents.synthesizer")
 
 _SYSTEM_PROMPT = (
     "You are the Response Synthesizer of the OmniBrain multi-agent orchestrator. "
-    "Answer the user's question using ONLY the provided context excerpts. "
-    "Do not invent facts that are not present in the context. "
-    "If the context does not contain enough information to answer, say so plainly. "
-    "Keep the answer concise and reference sources inline as [filename p.page_number] for "
-    "document excerpts, or as [OmniBrain Database] for structured database query results. "
+    "Answer ONLY the exact question asked below, using ONLY the provided context "
+    "excerpts. The context may contain multiple unrelated topics -- ignore every part "
+    "of it that does not directly bear on this specific question; never mention, "
+    "summarize, or answer any other question. Do not invent facts that are not "
+    "present in the context. If the context does not contain enough information to "
+    "answer, say so in one short sentence and stop. "
+    "Be precise and pointed: lead with the direct answer in the first sentence, no "
+    "preamble ('Based on the context...'), no restating the question, no summarizing "
+    "the whole context. Maximum 2-3 sentences total (a short list only if the "
+    "question explicitly asks for multiple items). Paraphrase in your own words; do "
+    "not copy sentences verbatim from the context except for short quotes (under 15 "
+    "words) where the exact wording matters. "
+    "Reference sources inline as [filename p.page_number] for document excerpts, or as "
+    "[OmniBrain Database] for structured database query results. "
     "Clearly distinguish database-derived information from document excerpts."
 )
 
@@ -38,6 +47,7 @@ class ResponseSynthesizer:
         self.llm = llm or ChatOpenAI(
             model=settings.OPENAI_MODEL, api_key=settings.OPENAI_API_KEY, temperature=0.2,
             timeout=settings.LLM_REQUEST_TIMEOUT_SECONDS, max_retries=settings.LLM_MAX_RETRIES,
+            max_tokens=220,
         )
 
     def synthesize(
