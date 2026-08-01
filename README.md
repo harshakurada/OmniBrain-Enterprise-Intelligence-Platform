@@ -15,7 +15,7 @@ pip install -r requirements.txt
 cp .env.example .env   # then set a real OPENAI_API_KEY inside .env
 
 python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 &
-streamlit run frontend/app.py .
+streamlit run frontend/app.py 
 ```
 
 | | |
