@@ -278,4 +278,4 @@ To run without Qdrant (default), the app transparently falls back to the bundled
 
 - **Single-process state**: LangGraph's `MemorySaver` checkpointer, the metrics store, and the evaluation-report store are in-process singletons. Running `UVICORN_WORKERS > 1` or multiple backend replicas gives each process independent state. Scaling out safely would require externalizing these to a shared backend (e.g. Redis) — out of scope for this module.
 - **SQL Agent scope**: answers questions about OmniBrain's *own* ingestion metadata (documents/chunks/assets tables), not arbitrary external databases.
-- **Output guardrail grounding check** is a citation-presence/relevance heuristic, not a full NLI/entailment model (no such dependency is in the approved tech stack).
+- **Output guardrail grounding check** is a citation-presence/relevance heuristic, not a full NLI/entailment model (no such dependency is in the approved tech stack)
