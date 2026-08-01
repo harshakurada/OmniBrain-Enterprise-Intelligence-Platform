@@ -44,7 +44,7 @@ Try it: **Upload Documents** → upload a PDF → **Orchestrator Chat** → ask 
 
 ### Request flow (`POST /api/v1/orchestrate`)
 
-```
+``
 START
   │
   ▼
