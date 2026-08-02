@@ -118,7 +118,7 @@ OmniBrain/
 - Python 3.12
 - An OpenAI API key (optional — the app runs and degrades gracefully without one; see [Troubleshooting](#9-troubleshooting))
 - Docker & Docker Compose (only if deploying via containers)
-- Qdrant (optional — falls back to a local FAISS index automatically if unreachable)
+- Qdrant (optional — falls back to a local FAISS index automatically if unreachable).
 
 ### Local setup
 
