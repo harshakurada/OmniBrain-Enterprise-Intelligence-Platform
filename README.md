@@ -170,7 +170,7 @@ All configuration is centralized in `backend/app/config/settings.py` (Pydantic `
 ### Secrets handling
 - `.env` is git-ignored (only `.env.example`, with placeholder values, is committed).
 - In Docker, secrets are injected via `env_file:`/`environment:` in `docker-compose.yml` — never baked into the image.
-- Startup validation (`backend/app/core/startup_validation.py`) warns (does not block) if `ENVIRONMENT=production` is combined with `DEBUG=true`, a wildcard `CORS_ORIGINS`, or a placeholder `OPENAI_API_KEY`.
+- Startup validation (`backend/app/core/startup_validation.py`) warns (does not block) if `ENVIRONMENT=production` is combined with `DEBUG=true`, a wildcard `CORS_ORIGINS`, or a placeholder `OPENAI_API_KEY`
 
 ---
 
