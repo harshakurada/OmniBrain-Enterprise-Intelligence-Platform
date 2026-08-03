@@ -67,7 +67,7 @@ guardrails_output  (scores grounding/confidence)
 END
 ```
 
-Conversation state and execution history persist per `thread_id` via LangGraph's `MemorySaver` checkpointer. Every run's execution trace, retrieval statistics, and a full evaluation report are recorded automatically (see [Observability](#7-observability--evaluation)).
+Conversation state and execution history persist per `thread_id` via LangGraph's `MemorySaver` checkpointer. Every run's execution trace, retrieval statistics, and a full evaluation report are recorded automatically (see [Observability](#7-observability--evaluation))
 
 ### Backend layering
 
