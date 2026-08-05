@@ -42,29 +42,136 @@ Try it: **Upload Documents** → upload a PDF → **Orchestrator Chat** → ask 
 | 6 | Guardrails (prompt-injection/jailbreak detection, response grounding), Evaluation, Observability (metrics, request tracing) |
 | 7 | Production hardening: startup validation, Docker, connection reuse, structured logging, deployment docs |
 
-### Request flow (`POST /api/v1/orchestrate`)
+### System architecture
 
+```mermaid
+flowchart TB
+    subgraph Client["Client Layer"]
+        UI["Streamlit UI\nport 8501\n(Home · Dashboard · Upload · Search ·\nSQL Intelligence · Orchestrator Chat · Observability)"]
+    end
+
+    subgraph API["FastAPI Backend — port 8000"]
+        ROUTER["API Routers /api/v1/*\ndocuments · search · orchestrate · vision · sql · guardrails · evaluation · observability"]
+        DEPS["Dependency Injection\nbackend/app/api/deps.py"]
+    end
+
+    subgraph Core["Core Intelligence Layer"]
+        ING["Document Ingestion Pipeline\n(Module 2 + 4)"]
+        ORCH["LangGraph Multi-Agent Orchestrator\n(Module 3 + 4 + 5)"]
+        GUARD["Guardrails\n(Module 6)"]
+        EVAL["Evaluation Engine\n(Module 6)"]
+        OBS["Observability / Metrics\n(Module 6)"]
+    end
+
+    subgraph Data["Data & External Services"]
+        DB[("SQLite — documents · chunks · assets")]
+        VEC[("Qdrant vector index — fallback: local FAISS")]
+        FS[("Local Storage — uploads/ + assets/")]
+        OAI[["OpenAI API\nchat · embeddings · vision"]]
+    end
+
+    UI <-->|HTTP / JSON| ROUTER
+    ROUTER --> DEPS
+    DEPS --> ING
+    DEPS --> ORCH
+    DEPS --> GUARD
+    DEPS --> EVAL
+    DEPS --> OBS
+
+    ING --> FS
+    ING --> DB
+    ING --> VEC
+    ING --> OAI
+
+    ORCH --> DB
+    ORCH --> VEC
+    ORCH --> OAI
+    ORCH --> GUARD
+    ORCH --> EVAL
+    ORCH --> OBS
 ```
-START
-  │
-  ▼
-guardrails_input  ──(blocked)──▶ guardrails_output ──▶ END
-  │ (passed)
-  ▼
-supervisor  (classifies intent, decides which agents to invoke)
-  │
-  ├──▶ retrieval_agent   (semantic search: text + image + table chunks)
-  ├──▶ vision_agent      (multi-modal search restricted to image/table chunks)
-  └──▶ sql_agent         (Text-to-SQL over the app's own metadata DB)
-  │        (agents run in parallel, fan back in)
-  ▼
-synthesizer  (merges results, dedupes, generates one grounded answer + citations)
-  │
-  ▼
-guardrails_output  (scores grounding/confidence)
-  │
-  ▼
-END
+
+### Document ingestion workflow (`POST /api/v1/documents/upload`)
+
+Each uploaded PDF runs through this pipeline synchronously and independently — one file failing does not abort the rest of the batch (see `DocumentIngestionService._process_document`).
+
+```mermaid
+flowchart TD
+    START(["POST /documents/upload\n(one or more PDFs)"]) --> VALIDATE{"Valid file?\ntype + size check"}
+    VALIDATE -- "No" --> REJECT["status = REJECTED\nreturned per-file, batch continues"]
+    VALIDATE -- "Yes" --> STORE["Persist file to disk\ncreate DocumentModel (PENDING)"]
+
+    STORE --> PARSE["Parse PDF\nextract pages, text, tables, images"]
+    PARSE --> CHUNK["Recursive text chunking\nDEFAULT_CHUNK_SIZE / DEFAULT_CHUNK_OVERLAP"]
+    PARSE --> VISION["Vision Agent asset extraction\ndescribe images + structure tables (GPT-4o)"]
+
+    CHUNK --> COMBINE["Combine text chunks + visual chunk records\ninto one embeddable set"]
+    VISION --> COMBINE
+
+    COMBINE --> EMPTY{"Any content\nextracted?"}
+    EMPTY -- "No" --> DONE0["status = COMPLETED\nchunk_count = 0"]
+    EMPTY -- "Yes" --> EMBED["Generate OpenAI embeddings\nfor every chunk"]
+
+    EMBED --> UPSERT["Upsert vectors into\nQdrant (fallback: local FAISS)"]
+    UPSERT --> PERSIST["Persist DocumentChunk +\nExtractedAsset rows to SQLite"]
+    PERSIST --> DONE1["status = COMPLETED\npage_count / chunk_count set"]
+
+    STORE -. "exception" .-> FAIL["status = FAILED\nerror_message recorded"]
+    PARSE -. "exception" .-> FAIL
+    EMBED -. "exception" .-> FAIL
+```
+
+### Multi-agent orchestration workflow (`POST /api/v1/orchestrate`)
+
+This is the exact LangGraph state machine assembled in `backend/app/agents/graph.py`. The Retrieval, Vision, and SQL agents are fanned out conditionally by the Supervisor and always fan back in at the Synthesizer — a node throwing never aborts the run, it's captured in `errors`/`execution_trace` and the graph still reaches a (possibly degraded) final answer.
+
+```mermaid
+flowchart TD
+    START(["START"]) --> GIN["guardrails_input\ninput safety check\n(prompt-injection / jailbreak)"]
+    GIN --> BLOCKED{"blocked?"}
+    BLOCKED -- "yes" --> GOUT
+    BLOCKED -- "no" --> SUP["supervisor\nclassify intent, decide agents_to_invoke"]
+
+    SUP --> ROUTE{"route_after_supervisor\n(conditional fan-out)"}
+    ROUTE -- "retrieval" --> RET["retrieval_agent\nsemantic search over text + image + table chunks"]
+    ROUTE -- "vision" --> VIS["vision_agent\nmulti-modal search restricted to image/table chunks"]
+    ROUTE -- "sql" --> SQL["sql_agent\nText-to-SQL over app's own metadata DB (read-only enforced)"]
+    ROUTE -- "none matched" --> SYN
+
+    RET --> SYN["synthesizer\nmerge results, dedupe, generate one\ngrounded answer + citations"]
+    VIS --> SYN
+    SQL --> SYN
+
+    SYN --> GOUT["guardrails_output\nscore grounding / confidence"]
+    GOUT --> FIN(["END\nfinal_response + citations + execution_trace"])
+
+    style RET fill:#dbeafe,stroke:#2563eb
+    style VIS fill:#dbeafe,stroke:#2563eb
+    style SQL fill:#dbeafe,stroke:#2563eb
+```
+
+**Note:** `retrieval_agent`, `vision_agent`, and `sql_agent` are independent graph branches — when the Supervisor selects more than one (e.g. a question about both a chart and document text), LangGraph executes them in parallel and waits for all selected branches before running the Synthesizer.
+
+### Supervisor routing decision
+
+```mermaid
+flowchart TD
+    Q["User query"] --> TRY{"LLM classifier\ninitialized?"}
+    TRY -- "yes" --> LLM["ChatOpenAI.with_structured_output(RouteDecision)"]
+    TRY -- "no / init failed" --> KW
+    LLM -- "success" --> DECISION["RouteDecision:\nintent · agents · reasoning"]
+    LLM -- "exception" --> KW["Keyword fallback classifier\n(deterministic, fully offline)"]
+
+    KW --> ALWAYS["always include: retrieval"]
+    KW --> SQLCHK{"contains sql/database/table/\ncount/average/group by...?"}
+    SQLCHK -- "yes" --> ADDSQL["+ sql"]
+    KW --> VISCHK{"contains image/chart/diagram/\nphoto/screenshot/plot...?"}
+    VISCHK -- "yes" --> ADDVIS["+ vision"]
+
+    ALWAYS --> DECISION
+    ADDSQL --> DECISION
+    ADDVIS --> DECISION
+    DECISION --> OUT["agents_to_invoke → passed to\ngraph's route_after_supervisor"]
 ```
 
 Conversation state and execution history persist per `thread_id` via LangGraph's `MemorySaver` checkpointer. Every run's execution trace, retrieval statistics, and a full evaluation report are recorded automatically (see [Observability](#7-observability--evaluation)).
