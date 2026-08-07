@@ -24,7 +24,7 @@ streamlit run frontend/app.py
 | **API docs (Swagger)** | http://127.0.0.1:8000/docs |
 | **Health check** | http://127.0.0.1:8000/api/v1/health |
 
-Try it: **Upload Documents** → upload a PDF → **Orchestrator Chat** → ask a question about it → watch the live multi-agent trace and grounded, cited answer. See [Section 8](#8-docker-deployment) for a one-command Docker Compose deployment instead.
+Try it: **Upload Documents** → upload a PDF → **Orchestrator Chat** → ask a question about it → watch the live multi-agent trace and grounded, cited answer. See [Section 8](#8-docker-deployment) for a one-command Docker Compose deployment instead..
 
 ---
 
