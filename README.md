@@ -1,6 +1,6 @@
 # OmniBrain – Agentic Multi-Modal RAG Orchestrator
 
-OmniBrain is a production-ready, multi-agent Retrieval-Augmented Generation (RAG) platform. A LangGraph-orchestrated Supervisor routes natural-language questions to specialized Retrieval, Vision, and SQL agents, synthesizes a single citation-grounded answer, and validates it through a guardrails/evaluation/observability layer — all served by a FastAPI backend with a Streamlit UI.
+OmniBrain is a production-ready, multi-agent Retrieval-Augmented Generation (RAG) platform. A LangGraph-orchestrated Supervisor routes natural-language questions to specialized Retrieval, Vision, and SQL agents, synthesizes a single citation-grounded answer, and validates it through a guardrails/evaluation/observability layer — all served by a FastAPI backend with a Streamlit UI..
 
 ---
 
